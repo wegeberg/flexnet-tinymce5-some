@@ -5,18 +5,35 @@
     Free to use if you include this comment.
 */
 
-const appID         = "XXX";
-const clientToken   = "XXX";
-const apiUrl        = "./api/flexnet-tinymce5-embed.php";
+// Enter appID and clientToken from your Facebook app
+// You MUST set the id of the script-tag to: flexnet-tinymce5-some
+const appID       = "XXX";
+const clientToken = "XXX";
 
-// If true the resulting HTML code will be used 
+// If showPreview is set to true the resulting HTML code will be used 
 // for making a preview in the #preview div
-const showPreview = true;
+const showPreview = false;
 
+let flexnetError = null;
 
 if (appID.substring(0, 3) === 'XXX') {
-    alert("You have to enter your Facebook appID and clientToken in flexnet-some.js");
+    flexnetError = "You have to enter your Facebook appID and clientToken in flexnet-some.js";
 }
+const flexnetScriptTag = $("script#flexnet-tinymce5-some");
+if (typeof flexnetScriptTag === "undefined") {
+    flexnetError = "The script tag for flexnet-tinymce5-some plugin MUST have the id flexnet-tinymce5-some";
+}
+
+if (flexnetError) {
+    alert(flexnetError);
+    // return;
+}
+
+const scriptSrc = flexnetScriptTag.attr('src').split('?')[0]; // find folder of this script
+const scriptDir = scriptSrc.split('/').slice(0, -2).join('/') + '/'; // remove 'dist/index.js'
+const apiUrl = `${scriptDir}api/`;
+
+
 
 const some_icon = `<svg width="24px" height="24px" viewBox="0 0 209 240" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -29,7 +46,7 @@ const some_icon = `<svg width="24px" height="24px" viewBox="0 0 209 240" version
 </g>
 </svg>`;
 
-function getFacebook(facebookUrl) {
+const getFacebook = facebookUrl => {
     const url = `https://graph.facebook.com/v12.0/oembed_post?url=${encodeURI(facebookUrl)}&access_token=${appID}|${clientToken}`;
     $.ajax({
         url: url,
@@ -70,38 +87,19 @@ function getFacebook(facebookUrl) {
     });
 }
 
-const doInsert = function(api) {
+const doInsert = api => {
     const apiData = api.getData();
     const embedUrl = apiData.url;
     if(embedUrl.indexOf("facebook") > 0) {
         getFacebook(embedUrl);
     } else {
         const url = `${apiUrl}?url=${embedUrl}`;
-
         $.getJSON(url)
             .done(data => {
-                if (showPreview) {
-                    $("#preview").html(data.html);
-                }
+                showPreview && $("#preview").html(data.html);
                 tinyMCE.activeEditor.insertContent(data.html);
             })
             .fail(() => alert(`getJSON error: ${url}`));
-        //     $.getJSON(url, function(data, status) {
-        //         if(data.success) {
-        //         console.log("DATA", data);
-        //         if (showPreview) {
-        //             $("#preview").html(data.html);
-        //         }
-        //         tinyMCE.activeEditor.insertContent(
-        //             data.result.html
-        //         );
-        //     } else {
-        //         alert("Returned error: " + data.error);
-        //     }
-        // })
-        // .fail(function() {
-        //     console.error( "getJSON error:", url );
-        // });
     }
 }
 
