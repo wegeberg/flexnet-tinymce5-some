@@ -53,7 +53,6 @@ const getFacebook = facebookUrl => {
         dataType: "jsonp",
         async: false,
         success: function(data) {
-            console.log("DATA", data);
             if (showPreview) {
                 $("#preview").html(data.html);
             }
