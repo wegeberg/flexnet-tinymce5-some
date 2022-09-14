@@ -10,9 +10,9 @@
 const appID       = "XXX";
 const clientToken = "XXX";
 
-// If showPreview is set to true the resulting HTML code will be used 
+// If true the resulting HTML code will be used 
 // for making a preview in the #preview div
-const showPreview = false;
+const someShowPreview = false;
 
 let flexnetError = null;
 
@@ -33,8 +33,6 @@ const scriptSrc = flexnetScriptTag.attr('src').split('?')[0]; // find folder of 
 const scriptDir = scriptSrc.split('/').slice(0, -2).join('/') + '/'; // remove 'dist/index.js'
 const apiUrl = `${scriptDir}api/`;
 
-
-
 const some_icon = `<svg width="24px" height="24px" viewBox="0 0 209 240" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
     <g id="SO-ME" transform="translate(0.520000, 0.760000)" fill="#000000" fill-rule="nonzero">
@@ -47,13 +45,13 @@ const some_icon = `<svg width="24px" height="24px" viewBox="0 0 209 240" version
 </svg>`;
 
 const getFacebook = facebookUrl => {
-    const url = `https://graph.facebook.com/v12.0/oembed_post?url=${encodeURI(facebookUrl)}&access_token=${appID}|${clientToken}`;
+    const url = `https://graph.facebook.com/v12.0/oembed_post?url=${encodeURIComponent(facebookUrl)}&access_token=${appID}|${clientToken}`;
     $.ajax({
         url: url,
         dataType: "jsonp",
         async: false,
         success: function(data) {
-            if (showPreview) {
+            if (someShowPreview) {
                 $("#preview").html(data.html);
             }
             if (data.html) {
@@ -61,7 +59,8 @@ const getFacebook = facebookUrl => {
                     data.html
                 );
             } else {
-                console.error("No HTML returned");
+                console.error ("No HTML returned");
+                console.error (url);
             }
         },
         error: function (jqXHR, exception) {
@@ -84,23 +83,71 @@ const getFacebook = facebookUrl => {
             alert(msg);
         },
     });
-}
+};
+
+const getInstagram = instagramUrl => {
+    const url = `https://graph.facebook.com/v12.0/instagram_oembed?url=${encodeURIComponent(instagramUrl)}&access_token=${appID}|${clientToken}`;
+    $.ajax({
+        url: url,
+        dataType: "jsonp",
+        async: false,
+        success: function(data) {
+            if (someShowPreview) {
+                $("#preview").html(data.html);
+            }
+            if (data.html) {
+                tinyMCE.activeEditor.insertContent(
+                    data.html
+                );
+            } else {
+                console.error ("No HTML returned");
+                console.error (url);
+            }
+        },
+        error: function (jqXHR, exception) {
+            var msg = '';
+            if (jqXHR.status === 0) {
+                msg = 'Not connect.\n Verify Network.';
+            } else if (jqXHR.status == 404) {
+                msg = 'Requested page not found. [404]';
+            } else if (jqXHR.status == 500) {
+                msg = 'Internal Server Error [500].';
+            } else if (exception === 'parsererror') {
+                msg = 'Requested JSON parse failed.';
+            } else if (exception === 'timeout') {
+                msg = 'Time out error.';
+            } else if (exception === 'abort') {
+                msg = 'Ajax request aborted.';
+            } else {
+                msg = 'Uncaught Error.\n' + jqXHR.responseText;
+            }
+            alert(msg);
+        },
+    });
+};
 
 const doInsert = api => {
     const apiData = api.getData();
     const embedUrl = apiData.url;
-    if(embedUrl.indexOf("facebook") > 0) {
+    if (embedUrl.indexOf ("facebook") > 0 || embedUrl.indexOf("https://fb.") === 0) {
         getFacebook(embedUrl);
+    } else if (embedUrl.indexOf("instagram") > 0) {
+        getInstagram(embedUrl);
     } else {
         const url = `${apiUrl}?url=${embedUrl}`;
         $.getJSON(url)
             .done(data => {
-                showPreview && $("#preview").html(data.html);
+                if (someShowPreview) $("#preview").html(data.html);
                 tinyMCE.activeEditor.insertContent(data.html);
             })
-            .fail(() => alert(`getJSON error: ${url}`));
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                console.log (errorThrown);
+                console.log (embedUrl);
+                alert('getJSON request failed! ' + textStatus);
+            });
+            // .fail(() => alert(`getJSON error: ${url}`));
     }
-}
+};
 
 tinymce.PluginManager.add('flexnet_some', function(editor, url) {
     editor.ui.registry.addIcon('some_icon', some_icon);

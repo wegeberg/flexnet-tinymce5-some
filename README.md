@@ -6,3 +6,5 @@ You have to enter your own credentials for Facebook Developers in /dist/flexnet-
 
 ## Prerequisites
 jQuery and PHP7+
+
+Version 1.2 - 2022-09-14
