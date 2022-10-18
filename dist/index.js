@@ -45,7 +45,7 @@ const some_icon = `<svg width="24px" height="24px" viewBox="0 0 209 240" version
 </svg>`;
 
 const getFacebook = facebookUrl => {
-    const url = `https://graph.facebook.com/v12.0/oembed_post?url=${encodeURIComponent (facebookUrl)}&access_token=${appID}|${clientToken}`;
+    const url = `https://graph.facebook.com/v15.0/oembed_post?url=${encodeURIComponent (facebookUrl)}&access_token=${appID}|${clientToken}`;
     console.log("url", url);
     $.ajax({
         url: url,
@@ -91,7 +91,7 @@ const getFacebook = facebookUrl => {
 };
 
 const getInstagram = instagramUrl => {
-    const url = `https://graph.facebook.com/v12.0/instagram_oembed?url=${encodeURIComponent (instagramUrl)}&access_token=${appID}|${clientToken}`;
+    const url = `https://graph.facebook.com/v15.0/instagram_oembed?url=${encodeURIComponent (instagramUrl)}&access_token=${appID}|${clientToken}`;
     $.ajax({
         url: url,
         dataType: "jsonp",
