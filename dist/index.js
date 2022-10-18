@@ -45,31 +45,36 @@ const some_icon = `<svg width="24px" height="24px" viewBox="0 0 209 240" version
 </svg>`;
 
 const getFacebook = facebookUrl => {
-    const url = `https://graph.facebook.com/v12.0/oembed_post?url=${encodeURIComponent(facebookUrl)}&access_token=${appID}|${clientToken}`;
+    const url = `https://graph.facebook.com/v12.0/oembed_post?url=${encodeURIComponent (facebookUrl)}&access_token=${appID}|${clientToken}`;
+    console.log("url", url);
     $.ajax({
         url: url,
         dataType: "jsonp",
         async: false,
-        success: function(data) {
+        success: function (data) {
+            const { error = null, html = null } = data;
             if (someShowPreview) {
-                $("#preview").html(data.html);
+                $("#preview").html(html);
             }
-            if (data.html) {
-                tinyMCE.activeEditor.insertContent(
-                    data.html
-                );
+            if (html) {
+                tinyMCE.activeEditor.insertContent( html );
+            } else if (error) {
+                const { message, type, code } = error;
+                console.info (error);
+                alert (`Facebook returned an error: ${message}. It is possible the error is due to missing permissions for sharing the post.`);
             } else {
-                console.error ("No HTML returned");
-                console.error (url);
+                console.info ("No HTML returned");
+                console.info (url);
+                alert ("No content was returned from Facebook :-(");
             }
         },
         error: function (jqXHR, exception) {
-            var msg = '';
+            let msg = '';
             if (jqXHR.status === 0) {
                 msg = 'Not connect.\n Verify Network.';
-            } else if (jqXHR.status == 404) {
+            } else if (+jqXHR.status === 404) {
                 msg = 'Requested page not found. [404]';
-            } else if (jqXHR.status == 500) {
+            } else if (+jqXHR.status === 500) {
                 msg = 'Internal Server Error [500].';
             } else if (exception === 'parsererror') {
                 msg = 'Requested JSON parse failed.';
@@ -86,26 +91,30 @@ const getFacebook = facebookUrl => {
 };
 
 const getInstagram = instagramUrl => {
-    const url = `https://graph.facebook.com/v12.0/instagram_oembed?url=${encodeURIComponent(instagramUrl)}&access_token=${appID}|${clientToken}`;
+    const url = `https://graph.facebook.com/v12.0/instagram_oembed?url=${encodeURIComponent (instagramUrl)}&access_token=${appID}|${clientToken}`;
     $.ajax({
         url: url,
         dataType: "jsonp",
         async: false,
-        success: function(data) {
+        success: function (data) {
+            const { error = null, html = null } = data;
             if (someShowPreview) {
-                $("#preview").html(data.html);
+                $("#preview").html(html);
             }
-            if (data.html) {
-                tinyMCE.activeEditor.insertContent(
-                    data.html
-                );
+            if (html) {
+                tinyMCE.activeEditor.insertContent( html );
+            } else if (error) {
+                const { message, type, code } = error;
+                console.info (error);
+                alert (`Instagram returned an error: ${message}. It is possible the error is due to missing permissions for sharing the post.`);
             } else {
-                console.error ("No HTML returned");
-                console.error (url);
+                console.info ("No HTML returned");
+                console.info (url);
+                alert ("No content was returned from Instagram :-(");
             }
         },
         error: function (jqXHR, exception) {
-            var msg = '';
+            let msg = "";
             if (jqXHR.status === 0) {
                 msg = 'Not connect.\n Verify Network.';
             } else if (jqXHR.status == 404) {
@@ -121,7 +130,7 @@ const getInstagram = instagramUrl => {
             } else {
                 msg = 'Uncaught Error.\n' + jqXHR.responseText;
             }
-            alert(msg);
+            alert (msg);
         },
     });
 };
@@ -129,9 +138,9 @@ const getInstagram = instagramUrl => {
 const doInsert = api => {
     const apiData = api.getData();
     const embedUrl = apiData.url;
-    if (embedUrl.indexOf ("facebook") > 0 || embedUrl.indexOf("https://fb.") === 0) {
+    if (embedUrl.indexOf ("facebook") > 0 || embedUrl.indexOf ("https://fb.") === 0) {
         getFacebook(embedUrl);
-    } else if (embedUrl.indexOf("instagram") > 0) {
+    } else if (embedUrl.indexOf ("instagram") > 0) {
         getInstagram(embedUrl);
     } else {
         const url = `${apiUrl}?url=${embedUrl}`;
@@ -140,10 +149,10 @@ const doInsert = api => {
                 if (someShowPreview) $("#preview").html(data.html);
                 tinyMCE.activeEditor.insertContent(data.html);
             })
-            .fail(function(jqXHR, textStatus, errorThrown) {
+            .fail(function (jqXHR, textStatus, errorThrown) {
                 console.log (errorThrown);
                 console.log (embedUrl);
-                alert('getJSON request failed! ' + textStatus);
+                alert ('getJSON request failed! ' + textStatus);
             });
             // .fail(() => alert(`getJSON error: ${url}`));
     }
