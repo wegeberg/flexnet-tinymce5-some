@@ -46,6 +46,9 @@ if ($valgtService == "soundcloud") {
     $content = substr ($content, 1, -2);
 }
 $result = $content ? json_decode ($content, true) : null;
+if ($valgtService == "soundcloud") {
+    $result = str_replace('width="100%"', 'width="400"', $result);
+}
 if (!$result) {
     sendNoCacheHeaders();
     apiResponse([ "error" => "Content not found {$endpoint}{$url}"]);
