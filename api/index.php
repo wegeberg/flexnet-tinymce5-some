@@ -1,7 +1,7 @@
 <?php
 include ("./utility-functions.php");
 
-$url = isset ($_GET["url"]) ? trim ($_GET["url"]) : null;
+$url = isset ($_GET["url"]) ? trim($_GET["url"]) : null;
 $showDebug = isset ($_GET["showDebug"]);
 
 if (!$url) {
@@ -9,7 +9,7 @@ if (!$url) {
     apiResponse([ "error" => "URL is missing" ]);
 }
 
-if (substr ($url, 0, 4) != "http") {
+if (!str_starts_with($url, "http")) {
     sendNoCacheHeaders();
     apiResponse([ "error" => "This doesn't look like a valid URL "]);
 }
@@ -51,17 +51,22 @@ if (!$result) {
     apiResponse([ "error" => "Content not found {$endpoint}{$url}"]);
 }
 
+if (!$result) {
+    sendNoCacheHeaders();
+    apiResponse([ "error" => "Content not found {$endpoint}{$url}"]);
+}
+
 switch ($valgtService) {
     case 'infogram':
-        $ratio = (int) $result["width"] / (int) $result["height"];
+        $ratio = intval ($result["width"]) / intval ($result["height"]);
         $newWidth = 606;
         $newHeight = ceil ($newWidth / $ratio);
-    
+
         $html = str_replace ('width="'.$result["width"], 'width="'.$newWidth, $result["html"]);
         $html = str_replace ('height="'.$result["height"], 'height="'.$newHeight, $html);
-    
+
         $result["html"] = $html;
-    
+
         $result["width"] = $newWidth;
         $result["height"] = $newHeight;
         break;

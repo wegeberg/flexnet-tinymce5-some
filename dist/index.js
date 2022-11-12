@@ -1,18 +1,14 @@
 /*
-    A plugin for adding media content to TinyMCE 5
-    Copyright Flexnet/Wegeberg 2019-2022
-    https://www.flexnet.dk
-    Free to use if you include this comment.
+v. 2.0.1 - November 2022
+A plugin for adding media content to TinyMCE 5
+Copyright Flexnet/Wegeberg 2019-2022
+https://
 */
 
 // Enter appID and clientToken from your Facebook app
 // You MUST set the id of the script-tag to: flexnet-tinymce5-some
 const appID       = "XXX";
 const clientToken = "XXX";
-
-// If true the resulting HTML code will be used 
-// for making a preview in the #preview div
-const someShowPreview = false;
 
 let flexnetError = null;
 
@@ -44,8 +40,11 @@ const some_icon = `<svg width="24px" height="24px" viewBox="0 0 209 240" version
 </g>
 </svg>`;
 
-const getFacebook = facebookUrl => {
-    const url = `https://graph.facebook.com/v15.0/oembed_post?url=${encodeURIComponent (facebookUrl)}&access_token=${appID}|${clientToken}`;
+const getFacebook = (facebookUrl, showSomePreview) => {
+    let url = `https://graph.facebook.com/v15.0/oembed_post?url=${encodeURIComponent (facebookUrl)}&access_token=${appID}|${clientToken}`;
+    if (facebookUrl.indexOf('/videos') > 0) {
+        url = `https://graph.facebook.com/v15.0/oembed_video?url=${encodeURIComponent (facebookUrl)}&access_token=${appID}|${clientToken}`;
+    }
     console.log("url", url);
     $.ajax({
         url: url,
@@ -53,8 +52,8 @@ const getFacebook = facebookUrl => {
         async: false,
         success: function (data) {
             const { error = null, html = null } = data;
-            if (someShowPreview) {
-                $("#preview").html(html);
+            if (showSomePreview) {
+                $("#some-preview").html(html);
             }
             if (html) {
                 tinyMCE.activeEditor.insertContent( html );
@@ -90,7 +89,7 @@ const getFacebook = facebookUrl => {
     });
 };
 
-const getInstagram = instagramUrl => {
+const getInstagram = (instagramUrl, showSomePreview) => {
     const url = `https://graph.facebook.com/v15.0/instagram_oembed?url=${encodeURIComponent (instagramUrl)}&access_token=${appID}|${clientToken}`;
     $.ajax({
         url: url,
@@ -98,8 +97,8 @@ const getInstagram = instagramUrl => {
         async: false,
         success: function (data) {
             const { error = null, html = null } = data;
-            if (someShowPreview) {
-                $("#preview").html(html);
+            if (showSomePreview) {
+                $("#some-preview").html(html);
             }
             if (html) {
                 tinyMCE.activeEditor.insertContent( html );
@@ -135,18 +134,18 @@ const getInstagram = instagramUrl => {
     });
 };
 
-const doInsert = api => {
+const doInsert = (api, showSomePreview) => {
     const apiData = api.getData();
     const embedUrl = apiData.url;
     if (embedUrl.indexOf ("facebook") > 0 || embedUrl.indexOf ("https://fb.") === 0) {
-        getFacebook(embedUrl);
+        getFacebook(embedUrl, showSomePreview);
     } else if (embedUrl.indexOf ("instagram") > 0) {
-        getInstagram(embedUrl);
+        getInstagram(embedUrl, showSomePreview);
     } else {
         const url = `${apiUrl}?url=${embedUrl}`;
         $.getJSON(url)
             .done(data => {
-                if (someShowPreview) $("#preview").html(data.html);
+                if (showSomePreview) $("#some-preview").html(data.html);
                 tinyMCE.activeEditor.insertContent(data.html);
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
@@ -154,11 +153,11 @@ const doInsert = api => {
                 console.log (embedUrl);
                 alert ('getJSON request failed! ' + textStatus);
             });
-            // .fail(() => alert(`getJSON error: ${url}`));
+        // .fail(() => alert(`getJSON error: ${url}`));
     }
 };
 
-tinymce.PluginManager.add('flexnet_some', function(editor, url) {
+tinymce.PluginManager.add('flexnet_some', function (editor) {
     editor.ui.registry.addIcon('some_icon', some_icon);
     editor.on('init', function (args) {
         editor_id = args.target.id;
@@ -187,10 +186,11 @@ tinymce.PluginManager.add('flexnet_some', function(editor, url) {
                         name: 'indsaet',
                         text: 'Indsæt',
                         primary: true
-                    },            
+                    },
                 ],
                 onAction: function (api) {
-                    doInsert(api);
+                    const showSomePreview = $("#show-some-preview").is(':checked');
+                    doInsert(api, showSomePreview);
                     editor.windowManager.close();
                 }
             });

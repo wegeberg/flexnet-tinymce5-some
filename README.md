@@ -2,9 +2,9 @@ A plugin for TinyMCE 5 for adding content from Facebook, Twitter, YouTube, Vimeo
 
 ## Usage
 See example.html
-You have to enter your own credentials for Facebook Developers in /dist/flexnet-some.js
+You have to enter your own credentials for Facebook Developers in /dist/index.js
 
 ## Prerequisites
-jQuery and PHP7+
+TinyMCE, jQuery and PHP8+
 
-Version 1.2 - 2022-09-14
+Version 2.01 - 2022-11-12
