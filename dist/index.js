@@ -7,8 +7,8 @@ https://
 
 // Enter appID and clientToken from your Facebook app
 // You MUST set the id of the script-tag to: flexnet-tinymce5-some
-const appID       = "1378389398979888";
-const clientToken = "a29c14ff3637395281f955093052869d";
+const appID       = "XXX";
+const clientToken = "XXX";
 
 let flexnetError = null;
 
